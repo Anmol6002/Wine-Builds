@@ -1,7 +1,7 @@
 diff --git a/dlls/ntdll/unix/loader.c b/dlls/ntdll/unix/loader.c
 --- a/dlls/ntdll/unix/loader.c
 +++ b/dlls/ntdll/unix/loader.c
-@@ -2180,6 +2180,57 @@ static void start_main_thread(void)
+@@ -2040,11 +2040,56 @@
  /***********************************************************************
   *           __wine_main
   *
@@ -21,14 +21,13 @@ diff --git a/dlls/ntdll/unix/loader.c b/dlls/ntdll/unix/loader.c
 +    /* Check if standard resolv.conf exists */
 +    if (!access("/etc/resolv.conf", R_OK)) return;
 +
-+    /* Set short timeout as safety net - prevents long hangs even if
-+     * resolv.conf creation below fails (e.g., permission denied) */
++    /* Set short timeout as safety net */
 +    setenv("RES_OPTIONS", "timeout:1 attempts:1", 0);
 +
 +    /* Detect Termux and create resolv.conf with public DNS */
 +    for (i = 0; resolv_paths[i]; i++)
 +    {
-+        if (access(resolv_paths[i], R_OK) == 0) return; /* already exists */
++        if (access(resolv_paths[i], R_OK) == 0) return;
 +    }
 +
 +    /* Allow override via WINE_DNS_SERVER env var */
