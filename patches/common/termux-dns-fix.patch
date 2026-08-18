@@ -73,4 +73,4 @@ diff --git a/dlls/ntdll/unix/loader.c b/dlls/ntdll/unix/loader.c
      apple_main_thread();
  #endif
      start_main_thread();
- }
+}
