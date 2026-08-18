@@ -55,3 +55,4 @@ diff --git a/dlls/ntdll/unix/loader.c b/dlls/ntdll/unix/loader.c
 +    init_dns_config();
  
  #ifdef __APPLE__
+     apple_main_thread();
