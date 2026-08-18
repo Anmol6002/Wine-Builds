@@ -54,4 +54,4 @@ diff --git a/dlls/ntdll/unix/loader.c b/dlls/ntdll/unix/loader.c
      init_environment();
 +    init_dns_config();
  
-   #ifdef __APPLE__
+ #ifdef __APPLE__
