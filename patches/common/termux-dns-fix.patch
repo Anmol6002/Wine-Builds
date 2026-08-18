@@ -1,13 +1,10 @@
 diff --git a/dlls/ntdll/unix/loader.c b/dlls/ntdll/unix/loader.c
 --- a/dlls/ntdll/unix/loader.c
 +++ b/dlls/ntdll/unix/loader.c
-@@ -830,6 +830,48 @@ static void check_command_line( int argc, char *argv[] )
+@@ -830,36 +830,78 @@ static void check_command_line( int argc, char *argv[] )
      reexec_loader( argc, argv, NULL );
  }
  
-+/***********************************************************************
-+ *           init_dns_config
-+ */
 +static void init_dns_config(void)
 +{
 +    static const char *resolv_paths[] = {
@@ -47,7 +44,26 @@ diff --git a/dlls/ntdll/unix/loader.c b/dlls/ntdll/unix/loader.c
  /***********************************************************************
   *           __wine_main
   *
-@@ -858,6 +900,7 @@ DECLSPEC_EXPORT void __wine_main( int argc, char *argv[] )
+  * Main entry point called by the wine loader.
+  */
+ DECLSPEC_EXPORT void __wine_main( int argc, char *argv[] )
+ {
+     main_argc = argc;
+     main_argv = argv;
+ 
+     init_paths();
+     if (!getenv( "WINELOADERNOEXEC" ) || argc <= 1) check_command_line( argc, argv );
+     unsetenv( "WINELOADERNOEXEC" );
+ 
+ #ifdef RLIMIT_NOFILE
+     set_max_limit( RLIMIT_NOFILE );
+ #endif
+ #ifdef RLIMIT_AS
+     set_max_limit( RLIMIT_AS );
+ #endif
+ #ifdef RLIMIT_NICE
+     set_max_limit( RLIMIT_NICE );
+ #endif
  
      virtual_init();
      init_environment();
@@ -55,3 +71,6 @@ diff --git a/dlls/ntdll/unix/loader.c b/dlls/ntdll/unix/loader.c
  
  #ifdef __APPLE__
      apple_main_thread();
+ #endif
+     start_main_thread();
+ }
