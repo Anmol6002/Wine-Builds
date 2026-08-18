@@ -1,12 +1,19 @@
 diff --git a/dlls/ntdll/unix/loader.c b/dlls/ntdll/unix/loader.c
+index 82d3d88..f3657a6 100644
 --- a/dlls/ntdll/unix/loader.c
 +++ b/dlls/ntdll/unix/loader.c
-@@ -2040,11 +2040,56 @@
- /***********************************************************************
-  *           __wine_main
-  *
-  * Entry point for all threads.
-  */
+@@ -1952,6 +1952,56 @@ static void start_main_thread(void)
+     server_init_process_done();
+ }
+ 
++/***********************************************************************
++ *           init_dns_config
++ *
++ * Ensure DNS resolution doesn't hang on systems without /etc/resolv.conf
++ * (e.g., Android/Termux where glibc's resolver has no config).
++ * Without this, gethostbyname/getaddrinfo will try 127.0.0.1:53 and
++ * block for 30+ seconds per attempt, causing services.exe to hang.
++ */
 +static void init_dns_config(void)
 +{
 +    static const char *resolv_paths[] = {
@@ -21,13 +28,14 @@ diff --git a/dlls/ntdll/unix/loader.c b/dlls/ntdll/unix/loader.c
 +    /* Check if standard resolv.conf exists */
 +    if (!access("/etc/resolv.conf", R_OK)) return;
 +
-+    /* Set short timeout as safety net */
++    /* Set short timeout as safety net - prevents long hangs even if
++     * resolv.conf creation below fails (e.g., permission denied) */
 +    setenv("RES_OPTIONS", "timeout:1 attempts:1", 0);
 +
 +    /* Detect Termux and create resolv.conf with public DNS */
 +    for (i = 0; resolv_paths[i]; i++)
 +    {
-+        if (access(resolv_paths[i], R_OK) == 0) return;
++        if (access(resolv_paths[i], R_OK) == 0) return; /* already exists */
 +    }
 +
 +    /* Allow override via WINE_DNS_SERVER env var */
@@ -48,8 +56,19 @@ diff --git a/dlls/ntdll/unix/loader.c b/dlls/ntdll/unix/loader.c
 +    }
 +}
 +
- DECLSPEC_EXPORT void __wine_main( int argc, char *argv[], char *envp[] )
- {
+ #ifdef __ANDROID__
+ 
+ #ifndef WINE_JAVA_CLASS
+@@ -2039,6 +2089,7 @@ static jstring wine_init_jni( JNIEnv *env, jobject obj, jobjectArray cmdline, jo
+     init_paths();
+     virtual_init();
+     init_environment();
++    init_dns_config();
+ 
+ #ifdef __i386__
+     {
+@@ -2326,6 +2377,7 @@ DECLSPEC_EXPORT void __wine_main( int argc, char *argv[] )
+ 
      virtual_init();
      init_environment();
 +    init_dns_config();
