@@ -1,19 +1,12 @@
 diff --git a/dlls/ntdll/unix/loader.c b/dlls/ntdll/unix/loader.c
-index 82d3d88..f3657a6 100644
 --- a/dlls/ntdll/unix/loader.c
 +++ b/dlls/ntdll/unix/loader.c
-@@ -2000,6 +2000,56 @@ static void check_command_line( int argc, char *argv[] )
-     }
- }
- 
-+/***********************************************************************
-+ *           init_dns_config
-+ *
-+ * Ensure DNS resolution doesn't hang on systems without /etc/resolv.conf
-+ * (e.g., Android/Termux where glibc's resolver has no config).
-+ * Without this, gethostbyname/getaddrinfo will try 127.0.0.1:53 and
-+ * block for 30+ seconds per attempt, causing services.exe to hang.
-+ */
+@@ -2180,6 +2180,57 @@ static void start_main_thread(void)
+ /***********************************************************************
+  *           __wine_main
+  *
+  * Entry point for all threads.
+  */
 +static void init_dns_config(void)
 +{
 +    static const char *resolv_paths[] = {
@@ -56,14 +49,10 @@ index 82d3d88..f3657a6 100644
 +    }
 +}
 +
- /***********************************************************************
-  *           __wine_main
-  *
-@@ -2040,6 +2090,7 @@ DECLSPEC_EXPORT void __wine_main( int argc, char *argv[], char *envp[] )
- 
+ DECLSPEC_EXPORT void __wine_main( int argc, char *argv[], char *envp[] )
+ {
      virtual_init();
      init_environment();
 +    init_dns_config();
  
  #ifdef __APPLE__
-     apple_main_thread();
